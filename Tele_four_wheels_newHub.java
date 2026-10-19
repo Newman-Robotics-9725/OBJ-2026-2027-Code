@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.hardware.rev.NormalizedRGBA;
 //Test
 //import com.qualcomm.robotcore.hardware.ColorSensor;
 
@@ -29,6 +30,7 @@ public class Tele_four_wheels_newHub extends LinearOpMode {
     int ColorRed = 0;
     int ColorGreen = 0;
     int ColorBlue = 0;
+    int ColorBall = 3
     //
     public void setDrivePower(double leftFrontPower, double rightFrontPower, double rightBackPower, double leftBackPower) {
             // Output the values to the motor drives.
@@ -88,6 +90,24 @@ public class Tele_four_wheels_newHub extends LinearOpMode {
                     ColorGreen = (OriginalGreen * 255)/MaxOriginalColor;
                     ColorBlue = (OriginalBlue * 255)/MaxOriginalColor;
                     telemetry.addLine("Color sensor detects: from red: " + ColorRed + " green: " + ColorGreen + " and blue: " + ColorBlue);
+                    if (colorSensor.getProximity() > 300){
+                        Color rgb = colorSensor.getColor();
+                        float [] hsv = new float[3];
+                        Color.RGBToHSV((int)(rgb.red * 225)(int)(rgb.green * 225)(int)(rgb.blue * 225);
+                        float hue = hsv[0]
+                    }
+                    if (hue >= 40 && hue <= 70){
+                        //ColorBall: Red = 0, Green = 1, Blue = 2;
+                        ColorBall = 0;
+                        telemetry.addLine("Color of the ball: " = "Yellow");
+                    } else if (hue >= 200 && hue <= 240){
+                        ColorBall = 1;
+                        telemetry.addLine("Color of the ball: " = "Blue");
+                    } else if (hue >= 340 || hue <= 20){
+                        ColorBall = 2;
+                        telemetry.addLine("Color of the ball: " = "Red");
+                    }
+                    
                 }
                 
             }
