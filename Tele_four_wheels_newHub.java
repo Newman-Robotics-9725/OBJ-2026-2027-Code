@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
@@ -11,7 +14,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
-import com.qualcomm.hardware.rev.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 //Test
 //import com.qualcomm.robotcore.hardware.ColorSensor;
 
@@ -25,13 +28,17 @@ public class Tele_four_wheels_newHub extends LinearOpMode {
     private DcMotor rightFrontDrive  = null;
     private DcMotor leftBackDrive  = null;
     private DcMotor rightBackDrive  = null;
-    //Test
+    //Variables
+    //Color Sensor
     private RevColorSensorV3 ColorSensor = null;
     int ColorRed = 0;
     int ColorGreen = 0;
     int ColorBlue = 0;
-    int ColorBall = 3
-    double hue
+    int ColorBall = 3;
+    double hue;
+    float red = 0;
+    float green = 0;
+    float blue = 0;
     //
     public void setDrivePower(double leftFrontPower, double rightFrontPower, double rightBackPower, double leftBackPower) {
             // Output the values to the motor drives.
@@ -79,70 +86,39 @@ public class Tele_four_wheels_newHub extends LinearOpMode {
         runtime.reset();
         while (opModeIsActive()) {
             driveRobot(-gamepad1.left_stick_y, -gamepad1.left_stick_x, gamepad1.right_stick_x);
-            if (ColorSensor.getProximty() > 300){
-            colorSensor.setGain(2.0f);//adapt to different lighting environment
+            ColorBall = 3;
+            telemetry.update();
+            //ColorSensor Detection
+            if (ColorSensor.getDistance(DistanceUnit.CM) < 3){
+            ColorSensor.setGain(2.0f);//adapt to different lighting environment
             NormalizedRGBA colors = ColorSensor.getNormalizedColors();
-            float red = ColorSensor.red;   // Range: 0.0 to 1.0
-            float green = ColorSensir.green; // Range: 0.0 to 1.0
-            float blue = ColorSensor.blue;  // Range: 0.0 to 1.0
-            telemetry.addLine("Light Detected" + "Color Red" + "%.3f", red + "Color Green" + "3%f", green + "Color Blue" + "3%f", blue); 
-            hue = JavaUtil.colorToHue(colors.roColor());
-            telemetry.addLine("Hue" + "%.3f", hue); 
+            float red = ColorSensor.red();  // Range: 0.0 to 1.0
+            float green = ColorSensor.green(); // Range: 0.0 to 1.0
+            float blue = ColorSensor.blue();  // Range: 0.0 to 1.0
+            telemetry.addLine("Light Detected" + "Color Red" + red + "Color Green" + green + "Color Blue" + blue); 
+            hue = JavaUtil.colorToHue(colors.toColor());
+            telemetry.addLine("Hue" + hue); 
                 if (hue < 30){
                     ColorBall = 0;
-                }else if (90 < hue < 150){
+                }else if (60 < hue && hue < 95){
                     ColorBall = 1;
-                }else if (150 < hue < 225){
+                }else if (150 < hue && hue < 230){
                     ColorBall = 2;
-                }
-                if (ColorBall = 0){
+                }else{ColorBall = 3;}
+                
+                if (ColorBall == 0){
                     telemetry.addLine("Ball Color is Red");
-                }elseif (ColorBall = 1){
-                    telemetry.addLine("Ball Color is Green");
-                }if (ColorBall = 2){
+                }else if (ColorBall == 1){
+                    telemetry.addLine("Ball Color is Yellow");
+                }else if (ColorBall == 2){
                     telemetry.addLine("Ball Color is Blue");
                 }
-            }
-            
-            /*
-            if (gamepad1.dpad_right){
-                int OriginalRed = ColorSensor.red();
-                int OriginalGreen = ColorSensor.green();
-                int OriginalBlue = ColorSensor.blue();
-                
-                //if
-                //adjustLauncherSize(ballType);
-                int MaxOriginalColor = Math.max(OriginalBlue, Math.max(OriginalRed, OriginalGreen));
-                if (MaxOriginalColor > 0){
-                    ColorRed = (OriginalRed * 255)/MaxOriginalColor;
-                    ColorGreen = (OriginalGreen * 255)/MaxOriginalColor;
-                    ColorBlue = (OriginalBlue * 255)/MaxOriginalColor;
-                    telemetry.addLine("Color sensor detects: from red: " + ColorRed + " green: " + ColorGreen + " and blue: " + ColorBlue);
-                    if (colorSensor.getProximity() > 300){
-                        
-                        float [] hsv = new float[3];
-                        Color.RGBToHSV((int)(rgb.red * 225)(int)(rgb.green * 225)(int)(rgb.blue * 225);
-                        float hue = hsv[0]
-                    }
-                    if (hue >= 40 && hue <= 70){
-                        //ColorBall: Red = 0, Green = 1, Blue = 2;
-                        ColorBall = 0;
-                        telemetry.addLine("Color of the ball: " = "Yellow");
-                    } else if (hue >= 200 && hue <= 240){
-                        ColorBall = 1;
-                        telemetry.addLine("Color of the ball: " = "Blue");
-                    } else if (hue >= 340 || hue <= 20){
-                        ColorBall = 2;
-                        telemetry.addLine("Color of the ball: " = "Red");
-                        */
+            }else if (ColorBall == 3){telemetry.addLine("No detected");
+                telemetry.update();
+            }//
                     }
                     
-                }
-                
-            }
             telemetry.update();
         }
         
     }
-    
-}
