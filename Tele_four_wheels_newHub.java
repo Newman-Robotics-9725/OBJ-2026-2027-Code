@@ -31,6 +31,7 @@ public class Tele_four_wheels_newHub extends LinearOpMode {
     int ColorGreen = 0;
     int ColorBlue = 0;
     int ColorBall = 3
+    double hue
     //
     public void setDrivePower(double leftFrontPower, double rightFrontPower, double rightBackPower, double leftBackPower) {
             // Output the values to the motor drives.
@@ -78,10 +79,37 @@ public class Tele_four_wheels_newHub extends LinearOpMode {
         runtime.reset();
         while (opModeIsActive()) {
             driveRobot(-gamepad1.left_stick_y, -gamepad1.left_stick_x, gamepad1.right_stick_x);
+            if (ColorSensor.getProximty() > 300){
+            colorSensor.setGain(2.0f);//adapt to different lighting environment
+            NormalizedRGBA colors = ColorSensor.getNormalizedColors();
+            float red = ColorSensor.red;   // Range: 0.0 to 1.0
+            float green = ColorSensir.green; // Range: 0.0 to 1.0
+            float blue = ColorSensor.blue;  // Range: 0.0 to 1.0
+            telemetry.addLine("Light Detected" + "Color Red" + "%.3f", red + "Color Green" + "3%f", green + "Color Blue" + "3%f", blue); 
+            hue = JavaUtil.colorToHue(colors.roColor());
+            telemetry.addLine("Hue" + "%.3f", hue); 
+                if (hue < 30){
+                    ColorBall = 0;
+                }else if (90 < hue < 150){
+                    ColorBall = 1;
+                }else if (150 < hue < 225){
+                    ColorBall = 2;
+                }
+                if (ColorBall = 0){
+                    telemetry.addLine("Ball Color is Red");
+                }elseif (ColorBall = 1){
+                    telemetry.addLine("Ball Color is Green");
+                }if (ColorBall = 2){
+                    telemetry.addLine("Ball Color is Blue");
+                }
+            }
+            
+            /*
             if (gamepad1.dpad_right){
                 int OriginalRed = ColorSensor.red();
                 int OriginalGreen = ColorSensor.green();
                 int OriginalBlue = ColorSensor.blue();
+                
                 //if
                 //adjustLauncherSize(ballType);
                 int MaxOriginalColor = Math.max(OriginalBlue, Math.max(OriginalRed, OriginalGreen));
@@ -91,7 +119,7 @@ public class Tele_four_wheels_newHub extends LinearOpMode {
                     ColorBlue = (OriginalBlue * 255)/MaxOriginalColor;
                     telemetry.addLine("Color sensor detects: from red: " + ColorRed + " green: " + ColorGreen + " and blue: " + ColorBlue);
                     if (colorSensor.getProximity() > 300){
-                        Color rgb = colorSensor.getColor();
+                        
                         float [] hsv = new float[3];
                         Color.RGBToHSV((int)(rgb.red * 225)(int)(rgb.green * 225)(int)(rgb.blue * 225);
                         float hue = hsv[0]
@@ -106,6 +134,7 @@ public class Tele_four_wheels_newHub extends LinearOpMode {
                     } else if (hue >= 340 || hue <= 20){
                         ColorBall = 2;
                         telemetry.addLine("Color of the ball: " = "Red");
+                        */
                     }
                     
                 }
