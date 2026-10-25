@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -251,12 +249,12 @@ public class MainCode extends LinearOpMode {
                 servol.setPosition(1);
                 servor.setPosition(1);
             }else if (ColorBall == 1){
-                plateServoL.setPower(-1);
-                plateServoR.setPower(-1);
+                servol.setPosition(0);
+                servor.setPosition(0);
             }else{
                 telemetry.addLine("Nothing new lift");
-                plateServoL.setPower(0);
-                plateServoR.setPower(0);
+                servol.setPosition(0.5);
+                servor.setPosition(0.5);
             }
             //
             moveAdjusters(gamepad2.dpad_up, gamepad2.dpad_down);
