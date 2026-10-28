@@ -28,6 +28,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 // import Math;
 // X offset: 17cm
 // Y offset: 4cm
@@ -68,7 +69,6 @@ public class Testing_Odom extends LinearOpMode {
     private double totalX = 0;
     private double totalY = 0;
     private double totalHeading = 0;
-    
     private double xOdomOffset = -17.0;
     private double yOdomOffset = -4.0;
     
@@ -80,49 +80,104 @@ public class Testing_Odom extends LinearOpMode {
             leftBackDrive.setPower(leftBackPower);
         }   
         
-    public void moveUsingOdom(double moveToX, double moveToY, double moveToAngle){
-        double forwardMovement = ((moveToX - totalX)/(moveToX));
-        double straffMovement = ((moveToY - totalY)/(moveToY));
-        double turnMovement = ((moveToAngle - totalHeading)/(moveToAngle));
-        telemetry.addLine("Trying move at: " + forwardMovement + ", " + straffMovement + ", " + turnMovement);
-        if (moveToX-1 > totalX || moveToX+1 < totalX){
-            driveRobot(forwardMovement, 0, 0);
+    // Movement controller constants. Position values are in millimeters.
+    private static final double KP_MOVE = 0.004;
+    private static final double KP_TURN = 0.015;
+    private double movementPower = 0.3;
+    private static final double MAX_MOVE_POWER = 0.65;
+    private static final double MIN_MOVE_POWER = 0.10;
+    private static final double MAX_TURN_POWER = 0.35;
+    private static final double MIN_TURN_POWER = 0.08;
+    private static final double POSITION_TOLERANCE_MM = 10.0;
+    private static final double HEADING_TOLERANCE_DEG = 1.0;
+
+    private double angleError(double target, double current) {
+        // Returns the shortest signed angle in [-180, 180).
+        return ((target - current + 540.0) % 360.0) - 180.0;
+    }
+
+    private double clip(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private void stopDrive() {
+        setDrivePower(0, 0, 0, 0);
+    }
+
+    public void moveUsingOdom(double moveToX, double moveToY, double moveToAngle) {
+        // Read the current field position from Pinpoint. X/Y and targets are in mm.
+        double x = odom.getX(DistanceUnit.MM);
+        double y = odom.getY(DistanceUnit.MM);
+
+        // Pinpoint heading is positive counterclockwise; keep that convention here.
+        double heading = odom.getHeading(AngleUnit.DEGREES);
+
+        // Error vector from the robot's current location to the target location.
+        double errorX = moveToX - x;
+        double errorY = moveToY - y;
+        double distance = Math.hypot(errorX, errorY);
+        double headingError = angleError(moveToAngle, heading);
+
+        // Stop only when both position and heading are within tolerance.
+        if (distance <= POSITION_TOLERANCE_MM
+                && Math.abs(headingError) <= HEADING_TOLERANCE_DEG) {
+            stopDrive();
+            telemetry.addLine("Target reached");
+            return;
         }
-        else if (moveToX-1 < totalX && moveToX+1 > totalX){
-            //driveRobot(0, 0, 0);
-            
-        
-            if (moveToY-1 > totalY || moveToY+1 < totalY){
-                driveRobot(0, straffMovement, 0);
-            }
-            else if (moveToY-1 < totalY && moveToY+1 > totalY){
-                //driveRobot(0, 0, 0);
-            
-                if (moveToAngle-1 > totalHeading || moveToAngle+1 > totalHeading){
-                    driveRobot(forwardMovement, straffMovement, turnMovement);
-                }
-                else if (moveToAngle-1 < totalHeading && moveToAngle+1 < totalHeading){
-                    driveRobot(0, 0, 0);
-                }
-            }
+
+        double forwardMovement = 0.0;
+        double straffMovement = 0.0;
+
+        // If position is already close enough, rotate without translating.
+        if (distance > POSITION_TOLERANCE_MM) {
+            // Scale power with distance while preserving the vector's direction.
+            double movementPower = clip(
+                    KP_MOVE * distance,
+                    MIN_MOVE_POWER,
+                    MAX_MOVE_POWER);
+
+            // Normalize the field-space error vector to the requested movement power.
+            double moveFieldX = (errorX / distance) * movementPower;
+            double moveFieldY = (errorY / distance) * movementPower;
+
+            // Rotate field-space movement into robot-space forward/left commands.
+            double headingRad = Math.toRadians(heading);
+            forwardMovement = moveFieldX * Math.cos(headingRad) + moveFieldY * Math.sin(headingRad);
+            straffMovement = -moveFieldX * Math.sin(headingRad)+ moveFieldY * Math.cos(headingRad);
         }
-    }   
-        
-        
+
+        // Positive heading error commands a counterclockwise turn.
+        // Do not turn when already within heading tolerance; otherwise use a small
+        // minimum power to help the robot overcome motor friction near the target.
+        double turnMovement = 0.0;
+        if (Math.abs(headingError) > HEADING_TOLERANCE_DEG) {
+            double turnPower = clip(
+                    Math.abs(KP_TURN * headingError),
+                    MIN_TURN_POWER,
+                    MAX_TURN_POWER);
+            turnMovement = Math.copySign(turnPower, headingError);
+        }
+
+        telemetry.addData("Movement vector", "forward %.2f, strafe %.2f, turn %.2f", forwardMovement, straffMovement, turnMovement);
+        telemetry.addData("Target error", "X %.1f mm, Y %.1f mm, distance %.1f mm", errorX, errorY, distance);
+
+        driveRobot(forwardMovement, straffMovement, turnMovement);
+    }
+
     public void driveRobot(double axial, double lateral, double yaw) {
-                                //Forward       side            turn
-        // Combine drive and turn for blended motion.
-        // Combine the joystick requests for each axis-motion to determine each wheel's power.
-        // Set up a variable for each drive wheel to save the power level for telemetry.
+        // Mecanum mixing: forward, strafe-left, and turn.
         double leftFrontPower  = axial - lateral + yaw;
         double rightFrontPower = axial + lateral - yaw;
         double leftBackPower   = axial + lateral + yaw;
         double rightBackPower  = axial - lateral - yaw;
-        
-        setDrivePower(leftFrontPower, rightFrontPower, rightBackPower, leftBackPower);
-        }        
-    
-    
+
+        // Normalize all powers together so ratios are preserved and no value exceeds 1.
+        double denominator = Math.max(1.0, Math.max(Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower)), Math.max(Math.abs(leftBackPower), Math.abs(rightBackPower))));
+
+        setDrivePower(leftFrontPower / denominator, rightFrontPower / denominator, rightBackPower / denominator, leftBackPower / denominator);
+    }
+
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -168,10 +223,13 @@ public class Testing_Odom extends LinearOpMode {
         // Get initial position
         odom.update();
 
-        previousX = odom.getPosX(DistanceUnit.CM);
-        previousY = odom.getPosY(DistanceUnit.CM);
+        // Sets the robot's current spot as the (0,0) origin, facing forward
+        Pose2D startingPose = new Pose2D(DistanceUnit.MM, 0.0, 0.0, AngleUnit.DEGREES, 0.0);
+        odom.setPosition(startingPose);
+        previousX = odom.getX(DistanceUnit.MM);
+        previousY = odom.getY(DistanceUnit.MM);
         
-        previousHeading = -odom.getHeading(AngleUnit.DEGREES);
+        previousHeading = odom.getHeading(AngleUnit.DEGREES);
 
         telemetry.addLine("Ready!");
         telemetry.update();
@@ -191,13 +249,13 @@ public class Testing_Odom extends LinearOpMode {
             odom.update();
 
             // Current position
-            double x = odom.getPosX(DistanceUnit.CM);
-            double y = odom.getPosY(DistanceUnit.CM);
-            double heading = -odom.getHeading(AngleUnit.DEGREES);
+            double x = odom.getX(DistanceUnit.MM);
+            double y = odom.getY(DistanceUnit.MM);
+            double heading = odom.getHeading(AngleUnit.DEGREES);
 
             // Current velocity
-            double velocityX = odom.getVelX(DistanceUnit.CM);
-            double velocityY = odom.getVelY(DistanceUnit.CM);
+            double velocityX = odom.getVelX(DistanceUnit.MM);
+            double velocityY = odom.getVelY(DistanceUnit.MM);
 
             // Detect changes in position
             double deltaX = x - previousX;
@@ -208,28 +266,28 @@ public class Testing_Odom extends LinearOpMode {
             double distanceMoved = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
             // Small threshold to prevent tiny sensor noise
-            boolean positionChanged = distanceMoved > 0.05;
+            boolean positionChanged = distanceMoved > 0.5;
             boolean rotationChanged = Math.abs(deltaHeading) > 0.1;
     
-            //Drive to X:30cm, Y:10cm, turn:180
-            moveUsingOdom(30, 10, 180);
+            // Drive to X:300 mm, Y:100 mm, turn:180 degrees.
+            moveUsingOdom(300, 100, 180);
             
 
             // Display position
-            telemetry.addData("X", "%.2f cm: ", x);
-            telemetry.addData("Y", "%.2f cm: ", y);
+            telemetry.addData("X", "%.2f mm", x);
+            telemetry.addData("Y", "%.2f mm", y);
             telemetry.addData("Heading", "%.2f deg: ", heading);
 
             telemetry.addLine();
 
-            telemetry.addData("X velocity", "%.2f cm/s: ", velocityX);
-            telemetry.addData("Y velocity", "%.2f cm/s: ", velocityY);
+            telemetry.addData("X velocity", "%.2f mm/s", velocityX);
+            telemetry.addData("Y velocity", "%.2f mm/s", velocityY);
 
             telemetry.addLine();
 
-            telemetry.addData("Change X", "%.3f cm: ", deltaX);
-            telemetry.addData("Change Y", "%.3f cm: ", deltaY);
-            telemetry.addData("Distance moved", "%.3f cm: ", distanceMoved);
+            telemetry.addData("Change X", "%.3f mm", deltaX);
+            telemetry.addData("Change Y", "%.3f mm", deltaY);
+            telemetry.addData("Distance moved", "%.3f mm", distanceMoved);
 
             telemetry.addLine();
 
@@ -250,7 +308,7 @@ public class Testing_Odom extends LinearOpMode {
             telemetry.update();
 
             // Save this loop's values for comparison next loop
-            //total is stored in x and y so this is mostly redundant but can be used outside of main loop
+            // Keep accumulated movement for existing diagnostics; moveUsingOdom reads Pinpoint directly.
             totalX += deltaX;
             totalY += deltaY;
             totalHeading += deltaHeading;
