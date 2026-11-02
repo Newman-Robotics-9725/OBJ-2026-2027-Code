@@ -29,8 +29,7 @@ public class Tele_four_wheels extends LinearOpMode {
     
     public void setDrivePower(double leftFrontPower, double rightFrontPower) {
             // Output the values to the motor drives.
-            FlywheelMotor1.setPower(***leftFrontPower);
-            FlywheelMotor2.setPower(rightFrontPower);
+            
         }   
         
     public void launchTheBall(double flyWheelPower){
@@ -73,7 +72,10 @@ public class Tele_four_wheels extends LinearOpMode {
         runtime.reset();
         while (opModeIsActive()) {
             driveRobot(-gamepad1.left_stick_y, -gamepad1.left_stick_x, gamepad1.right_stick_x);
-            launchTheBall(gamepad1.right_trigger);
+            //launchTheBall(gamepad1.right_trigger);
+            if (gamepad1.right_trigger == 1){
+                FlywheelMotor1.setPower(1);
+                FlywheelMotor2.setPower(1);
         }
         
     }
