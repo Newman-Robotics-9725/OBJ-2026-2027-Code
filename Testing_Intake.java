@@ -14,21 +14,20 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
-@TeleOp(name="four wheels slop", group="Linear OpMode")
+@TeleOp(name="Testing_Intake", group="Linear OpMode")
 
-public class Tele_four_wheels extends LinearOpMode {
+public class Testing_Intake extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private Limelight3A limelight;
     private DcMotor FlywheelMotor1 = null;
     private DcMotor FlywheelMotor2 = null;
     
     
     
     
-    public void setDrivePower(double leftFrontPower, double rightFrontPower) {
-            // Output the values to the motor drives.
+    /*public void setDrivePower(double leftFrontPower, double rightFrontPower) {
+            Output the values to the motor drives.
             
         }   
         
@@ -50,7 +49,7 @@ public class Tele_four_wheels extends LinearOpMode {
         double rightBackPower  = axial - lateral - yaw;
         
         setDrivePower(leftFrontPower, rightFrontPower, rightBackPower, leftBackPower);
-        }        
+        } */       
     
     
     @Override
@@ -61,8 +60,8 @@ public class Tele_four_wheels extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        //Undecided  = hardwareMap.get(DcMotor.class, "drivefl");//port 0
-        //Undecided = hardwareMap.get(DcMotor.class, "drivefr");//port 1
+        FlywheelMotor1  = hardwareMap.get(DcMotor.class, "FlywheelMotor1");//port 2
+        FlywheelMotor2 = hardwareMap.get(DcMotor.class, "FlywheelMotor2");//port 3
         
         
         //Undecided.setDirection(DcMotor.Direction.REVERSE);//FORWARD
@@ -71,13 +70,14 @@ public class Tele_four_wheels extends LinearOpMode {
         waitForStart();
         runtime.reset();
         while (opModeIsActive()) {
-            driveRobot(-gamepad1.left_stick_y, -gamepad1.left_stick_x, gamepad1.right_stick_x);
+            //driveRobot(-gamepad1.left_stick_y, -gamepad1.left_stick_x, gamepad1.right_stick_x);
             //launchTheBall(gamepad1.right_trigger);
             if (gamepad1.right_trigger == 1){
                 FlywheelMotor1.setPower(1);
                 FlywheelMotor2.setPower(1);
         }
         
+    }
     }
     
 }
