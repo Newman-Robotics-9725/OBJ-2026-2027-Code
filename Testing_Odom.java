@@ -188,7 +188,9 @@ public class Testing_Odom extends LinearOpMode {
                 partThreeHappens = false;
             }
         }
-        
+        else{
+            driveRobot(0, 0, 0);
+        }
     }
 
     public void driveRobot(double axial, double lateral, double yaw) {
