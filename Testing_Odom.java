@@ -191,6 +191,7 @@ public class Testing_Odom extends LinearOpMode {
         // Normalize all powers together so ratios are preserved and no value exceeds 1.
         double denominator = Math.max(1.0, Math.max(Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower)), Math.max(Math.abs(leftBackPower), Math.abs(rightBackPower))));
         setDrivePower(leftFrontPower / denominator, rightFrontPower / denominator, rightBackPower / denominator, leftBackPower / denominator);
+        telemetry.update();
     }
 
     @Override
