@@ -187,10 +187,9 @@ public class Testing_Odom extends LinearOpMode {
         double rightFrontPower = axial + lateral - yaw;
         double leftBackPower   = axial + lateral + yaw;
         double rightBackPower  = axial - lateral - yaw;
-
+        telemetry.addLine("LF power: " + leftFrontPower + ", RF power: " + rightFrontPower + ", LB power: " + leftBackPower + ", RB power: " + rightBackPower);
         // Normalize all powers together so ratios are preserved and no value exceeds 1.
         double denominator = Math.max(1.0, Math.max(Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower)), Math.max(Math.abs(leftBackPower), Math.abs(rightBackPower))));
-
         setDrivePower(leftFrontPower / denominator, rightFrontPower / denominator, rightBackPower / denominator, leftBackPower / denominator);
     }
 
