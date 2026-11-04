@@ -74,6 +74,8 @@ public class Testing_Odom extends LinearOpMode {
     private double yOdomOffset = -30.0;
     private boolean partOneHappens = true;
     private boolean partTwoHappens = false;
+    private boolean partThreeHappens = false;
+    
     
     public void setDrivePower(double leftFrontPower, double rightFrontPower, double rightBackPower, double leftBackPower) {
             // Output the values to the motor drives.
@@ -164,6 +166,7 @@ public class Testing_Odom extends LinearOpMode {
 
         telemetry.addData("Movement vector", "forward %.2f, strafe %.2f, turn %.2f", forwardMovement, straffMovement, turnMovement);
         telemetry.addData("Target error", "X %.1f mm, Y %.1f mm, distance %.1f mm", errorX, errorY, distance);
+        //driveRobot(forwardMovement, -straffMovement, turnMovement);
         
         if (partOneHappens){
             driveRobot(forwardMovement, -straffMovement, 0);
@@ -175,10 +178,17 @@ public class Testing_Odom extends LinearOpMode {
         else if(partTwoHappens){
         driveRobot(0, 0, turnMovement);
             if (Math.abs(headingError) <= HEADING_TOLERANCE_DEG){
-                partOneHappens = true;
+                partThreeHappens = true;
                 partTwoHappens = false;
             }
         }
+        else if (partThreeHappens){
+            driveRobot(forwardMovement, -straffMovement, turnMovement);
+            if ((Math.abs(headingError) <= HEADING_TOLERANCE_DEG) && (distance <= POSITION_TOLERANCE_MM)){
+                partThreeHappens = false;
+            }
+        }
+        
     }
 
     public void driveRobot(double axial, double lateral, double yaw) {
@@ -191,7 +201,6 @@ public class Testing_Odom extends LinearOpMode {
         // Normalize all powers together so ratios are preserved and no value exceeds 1.
         double denominator = Math.max(1.0, Math.max(Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower)), Math.max(Math.abs(leftBackPower), Math.abs(rightBackPower))));
         setDrivePower(leftFrontPower / denominator, rightFrontPower / denominator, rightBackPower / denominator, leftBackPower / denominator);
-        telemetry.update();
     }
 
     @Override
@@ -286,8 +295,12 @@ public class Testing_Odom extends LinearOpMode {
             boolean rotationChanged = Math.abs(deltaHeading) > 0.1;
     
             // Drive to X:300 mm, Y:100 mm, turn:180 degrees.
-            moveUsingOdom(300, 100, 180);
-            
+            if (partOneHappens || partTwoHappens){
+                moveUsingOdom(0, 0, 100);
+            }
+            else if (partThreeHappens){
+                moveUsingOdom(0, 0, 0);
+            }
 
             // Display position
             telemetry.addData("X", "%.2f mm", x);
