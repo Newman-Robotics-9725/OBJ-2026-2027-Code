@@ -215,7 +215,7 @@ public class MainCode extends LinearOpMode {
             ColorBall = 3;
             telemetry.update();
             //ColorSensor Detection
-            if (ColorSensor.getDistance(DistanceUnit.CM) < 3){
+            if (ColorSensor.getDistance(DistanceUnit.CM) < 10){
             ColorSensor.setGain(2.0f);//adapt to different lighting environment
             NormalizedRGBA colors = ColorSensor.getNormalizedColors();
             float red = ColorSensor.red();  // Range: 0.0 to 1.0
@@ -246,11 +246,11 @@ public class MainCode extends LinearOpMode {
             if (ColorBall == 0 || ColorBall == 2){
                 //servol.setPosition(servol.getPosition()+0.1);
                 //servor.setPosition(servor.getPosition()+0.1);
-                servol.setPosition(1);
-                servor.setPosition(1);
-            }else if (ColorBall == 1){
                 servol.setPosition(0);
                 servor.setPosition(0);
+            }else if (ColorBall == 1){
+                servol.setPosition(1);
+                servor.setPosition(1);
             }else{
                 telemetry.addLine("Nothing new lift");
                 servol.setPosition(0.5);
