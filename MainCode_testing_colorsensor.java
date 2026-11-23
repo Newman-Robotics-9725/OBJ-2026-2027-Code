@@ -225,9 +225,11 @@ public class MainCode_testing_colorsensor extends LinearOpMode {
             //launchBall(gamepad2.right_trigger, gamepad2.left_trigger);
             ColorBall = 3;
             telemetry.update();
+            float light = ColorSensor.getNormalizedColors().alpha;
             //ColorSensor Detection
             if (ColorSensor.getDistance(DistanceUnit.CM) < 10){
-            ColorSensor.setGain(2.0f);//adapt to different lighting environment
+                if (light < 0.05f）{ColorSensor.setGain(3.0f);//adapt to different lighting environment}
+                else if (light > 0.05f）{ColorSensor.setGain(2.0f);//adapt to different lighting environment}
             NormalizedRGBA colors = ColorSensor.getNormalizedColors();
             float red = ColorSensor.red();  // Range: 0.0 to 1.0
             float green = ColorSensor.green(); // Range: 0.0 to 1.0
