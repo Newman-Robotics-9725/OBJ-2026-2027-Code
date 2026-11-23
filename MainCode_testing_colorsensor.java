@@ -31,9 +31,9 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Main Teleop", group="Linear OpMode")
+@TeleOp(name="Sample Colorsensor Teleop", group="Linear OpMode")
 
-public class MainCode extends LinearOpMode {
+public class MainCode_testing_colorsensor extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -41,6 +41,8 @@ public class MainCode extends LinearOpMode {
     private DcMotor rightFrontDrive  = null;
     private DcMotor leftBackDrive  = null;
     private DcMotor rightBackDrive  = null;
+    private Servo servo = null;
+    /*
     private DcMotor inTake = null;
     private DcMotor launchMotorLeft = null; 
     private DcMotor launchMotorRight = null;
@@ -48,6 +50,7 @@ public class MainCode extends LinearOpMode {
     private Servo servor = null;
     private CRServo plateServoL = null;
     private CRServo plateServoR = null;
+    */
     
     double slPos = 0;
     double srPos = 0;
@@ -89,6 +92,7 @@ public class MainCode extends LinearOpMode {
         setDrivePower(leftFrontPower, rightFrontPower, rightBackPower, leftBackPower);
         }
         
+        /*
         public void moveIntake(boolean move, boolean directiony){
             if (move){
                 power = 1;
@@ -165,6 +169,7 @@ public class MainCode extends LinearOpMode {
             //srinPos = plateServoR.getPosition();
             //telemetry.addLine("SRin Power is: " + slinPos + ". SLin Pos is: " + srinPos);
         }
+        */
 
     @Override
     public void runOpMode() {
@@ -178,6 +183,9 @@ public class MainCode extends LinearOpMode {
         rightFrontDrive = hardwareMap.get(DcMotor.class, "drivefr");//port 1
         leftBackDrive = hardwareMap.get(DcMotor.class, "drivebl");//port 2
         rightBackDrive = hardwareMap.get(DcMotor.class, "drivebr");//port 3
+        servo = hardwareMap.get(Servo.class, "practiceServo");// port 0
+        ColorSensor = hardwareMap.get(RevColorSensorV3.class, "ColorSensor");//
+        /*
         inTake = hardwareMap.get(DcMotor.class, "intake");//port 1 ex
         launchMotorLeft = hardwareMap.get(DcMotor.class, "launchLeft");// port 0 ex
         launchMotorRight = hardwareMap.get(DcMotor.class, "launchRight");// port 2 ex
@@ -185,7 +193,7 @@ public class MainCode extends LinearOpMode {
         servor = hardwareMap.get(Servo.class, "rightServo");// port 1
         plateServoL = hardwareMap.get(CRServo.class, "intakeLeft"); //2
         plateServoR = hardwareMap.get(CRServo.class, "intakeRight"); //3
-        
+        */
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
@@ -194,14 +202,16 @@ public class MainCode extends LinearOpMode {
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        inTake.setDirection(DcMotor.Direction.FORWARD);
+        servo.setDirection(Servo.Direction.FORWARD);
+        
+        /*inTake.setDirection(DcMotor.Direction.FORWARD);
         launchMotorLeft.setDirection(DcMotor.Direction.FORWARD);
         launchMotorRight.setDirection(DcMotor.Direction.REVERSE);
         servol.setDirection(Servo.Direction.REVERSE); //flips 1 and 0 position
         servor.setDirection(Servo.Direction.FORWARD);
         plateServoL.setDirection(CRServo.Direction.FORWARD);
         plateServoR.setDirection(CRServo.Direction.REVERSE);
-
+        */
         // Wait for the game to start (driver presses START)
         waitForStart();
         runtime.reset();
@@ -209,9 +219,10 @@ public class MainCode extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             //driveRobot(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
-            driveRobot(gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x);
-            moveIntake(gamepad1.left_bumper, gamepad1.right_bumper);
-            launchBall(gamepad2.right_trigger, gamepad2.left_trigger);
+            
+            //driveRobot(gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x);
+            //moveIntake(gamepad1.left_bumper, gamepad1.right_bumper);
+            //launchBall(gamepad2.right_trigger, gamepad2.left_trigger);
             ColorBall = 3;
             telemetry.update();
             //ColorSensor Detection
@@ -226,7 +237,7 @@ public class MainCode extends LinearOpMode {
             telemetry.addLine("Hue" + hue); 
                 if (hue < 30){
                     ColorBall = 0;
-                }else if (60 < hue && hue < 95){
+                }else if (60 < hue && hue < 100){
                     ColorBall = 1;
                 }else if (150 < hue && hue < 230){
                     ColorBall = 2;
@@ -246,22 +257,19 @@ public class MainCode extends LinearOpMode {
             if (ColorBall == 0 || ColorBall == 2){
                 //servol.setPosition(servol.getPosition()+0.1);
                 //servor.setPosition(servor.getPosition()+0.1);
-                servol.setPosition(0);
-                servor.setPosition(0);
+                servo.setPosition(0);
             }else if (ColorBall == 1){
-                servol.setPosition(1);
-                servor.setPosition(1);
+                servo.setPosition(1);
             }else{
                 telemetry.addLine("Nothing new lift");
-                servol.setPosition(0.5);
-                servor.setPosition(0.5);
+                servo.setPosition(0);
             }
             //
-            moveAdjusters(gamepad2.dpad_up, gamepad2.dpad_down);
-            adjustLaunch(gamepad2.dpad_right, gamepad2.dpad_left);
-            plateLift(gamepad2.y, gamepad2.x);
-            telemetry.addLine("launcher had a max power of " + maxPow);
-            telemetry.addLine("CRservo power R: " + plateServoR.getPower() + " L: " + plateServoR.getPower());
+            //moveAdjusters(gamepad2.dpad_up, gamepad2.dpad_down);
+            //adjustLaunch(gamepad2.dpad_right, gamepad2.dpad_left);
+            //plateLift(gamepad2.y, gamepad2.x);
+            //telemetry.addLine("launcher had a max power of " + maxPow);
+            //telemetry.addLine("CRservo power R: " + plateServoR.getPower() + " L: " + plateServoR.getPower());
             telemetry.update();
         }
     }
