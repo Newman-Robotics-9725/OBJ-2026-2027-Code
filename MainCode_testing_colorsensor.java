@@ -235,12 +235,12 @@ public class MainCode_testing_colorsensor extends LinearOpMode {
             telemetry.addLine("Light Detected" + "Color Red" + red + "Color Green" + green + "Color Blue" + blue); 
             hue = JavaUtil.colorToHue(colors.toColor());
             telemetry.addLine("Hue" + hue); 
-                if (hue < 30){
-                    ColorBall = 0;
+                if (10 < hue && hue < 30){
+                    ColorBall = 0; //red
                 }else if (60 < hue && hue < 100){
-                    ColorBall = 1;
+                    ColorBall = 1; //yellow
                 }else if (150 < hue && hue < 230){
-                    ColorBall = 2;
+                    ColorBall = 2; //blue
                 }else{ColorBall = 3;}
                 
                 if (ColorBall == 0){
